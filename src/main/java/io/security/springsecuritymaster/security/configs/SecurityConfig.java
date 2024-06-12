@@ -19,9 +19,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        // 정적 자원 접근 허용
+                        .requestMatchers("/css/**", "/images/**", "/favicon.*", "/*/icon-*").permitAll()
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults())
+                .formLogin(form -> form
+                        // 커스텀 로그인 페이지 설정
+                            // login은 기본적으로 POST 요청 -> 요청 시 csrf 토큰이 서버에 전달되어야 함.
+                            // Thymeleaf를 이용한 form 태그를 사용 시 자동으로 "_csrf" 이름의 토큰이 생성됨.
+                        .loginPage("/login").permitAll())
         ;
         return http.build();
     }
