@@ -8,6 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -21,7 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 정적 자원 접근 허용
                         .requestMatchers("/css/**", "/images/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/", "/signup").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         // 커스텀 로그인 페이지 설정
@@ -30,6 +32,11 @@ public class SecurityConfig {
                         .loginPage("/login").permitAll())
         ;
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Bean
