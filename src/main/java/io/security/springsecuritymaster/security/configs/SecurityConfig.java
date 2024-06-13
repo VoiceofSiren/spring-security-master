@@ -16,6 +16,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
@@ -27,6 +28,7 @@ public class SecurityConfig {
     // private final UserDetailsService userDetailsService;
     private final AuthenticationProvider authenticationProvider;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final AuthenticationFailureHandler authenticationFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
     @Bean
@@ -35,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 정적 자원 접근 허용
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .requestMatchers("/", "/signup").permitAll()
+                        .requestMatchers("/", "/signup", "/login*").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         // 커스텀 로그인 페이지 설정
@@ -44,8 +46,10 @@ public class SecurityConfig {
                         .loginPage("/login").permitAll()
                             // 인증 상세 기능: 커스텀 AuthenticationDetailsSource 설정
                             .authenticationDetailsSource(authenticationDetailsSource)
-                        // 인증 성공 시 사용할 커스텀 AuthenticationSuccessHandler 설정
-                        .successHandler(authenticationSuccessHandler))
+                            // 인증 성공 시 사용할 커스텀 AuthenticationSuccessHandler 설정
+                            .successHandler(authenticationSuccessHandler)
+                            // 인증 실패 시 사용할 커스텀 AuthenticationFailureHandler 설정
+                            .failureHandler(authenticationFailureHandler))
                 // 커스텀 UserDetailsService 설정
                 /*
                 .userDetailsService(userDetailsService)
