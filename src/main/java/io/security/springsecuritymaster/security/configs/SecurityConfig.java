@@ -1,5 +1,6 @@
 package io.security.springsecuritymaster.security.configs;
 
+import io.security.springsecuritymaster.security.handler.FormAccessDeniedHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -33,12 +35,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .authorizeHttpRequests(auth -> auth
                         // 정적 자원 접근 허용
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
                         .requestMatchers("/", "/signup", "/login*").permitAll()
+                        .requestMatchers("/user").hasAuthority("ROLE_USER")
+                        .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
+                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
+
                 .formLogin(form -> form
                         // 커스텀 로그인 페이지 설정
                             // login은 기본적으로 POST 요청 -> 요청 시 csrf 토큰이 서버에 전달되어야 함.
@@ -50,6 +57,7 @@ public class SecurityConfig {
                             .successHandler(authenticationSuccessHandler)
                             // 인증 실패 시 사용할 커스텀 AuthenticationFailureHandler 설정
                             .failureHandler(authenticationFailureHandler))
+
                 // 커스텀 UserDetailsService 설정
                 /*
                 .userDetailsService(userDetailsService)
@@ -60,6 +68,10 @@ public class SecurityConfig {
                     // -> AuthenticationProvider -> UserDetailsService 순으로 진행됨.
                     // 커스텀 AuthenticationProvider 안에서 커스텀 UserDetailsService를 사용하는 방식으로 변경하고자 함.
                 .authenticationProvider(authenticationProvider)
+
+                .exceptionHandling(exception -> exception
+                        // 접근 거부 예외 발생 시 커스텀 AccessDeniedHandler 설정
+                        .accessDeniedHandler(new FormAccessDeniedHandler("/denied")))
         ;
         return http.build();
     }
