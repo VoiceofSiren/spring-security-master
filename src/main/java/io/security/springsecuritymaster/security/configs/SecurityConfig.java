@@ -3,6 +3,7 @@ package io.security.springsecuritymaster.security.configs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,7 +20,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsService userDetailsService;
+    // private final UserDetailsService userDetailsService;
+    private final AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,14 +37,17 @@ public class SecurityConfig {
                             // Thymeleaf를 이용한 form 태그를 사용 시 자동으로 "_csrf" 이름의 토큰이 생성됨.
                         .loginPage("/login").permitAll())
                 // 커스텀 UserDetailsService 설정
+                /*
                 .userDetailsService(userDetailsService)
+                */
+                // 커스텀 AuthenticationProvider 설정
+                // --> 커스텀 UserDetailsService는 SecurityConfig에서필요없게 됨.
+                    // AuthenticationFilter -> AuthenticationManager
+                    // -> AuthenticationProvider -> UserDetailsService 순으로 진행됨.
+                    // 커스텀 AuthenticationProvider 안에서 커스텀 UserDetailsService를 사용하는 방식으로 변경하고자 함.
+                .authenticationProvider(authenticationProvider)
         ;
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
 }
