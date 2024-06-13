@@ -5,11 +5,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -34,7 +36,7 @@ public class SecurityConfig {
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain formSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeHttpRequests(auth -> auth
@@ -72,6 +74,26 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception
                         // 접근 거부 예외 발생 시 커스텀 AccessDeniedHandler 설정
                         .accessDeniedHandler(new FormAccessDeniedHandler("/denied")))
+        ;
+        return http.build();
+    }
+
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain restSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        http
+                // "/api"로 시작하는 모든 요청은 여기에서 처리하도록 설정
+                .securityMatcher("/api/**")
+                .authorizeHttpRequests(auth -> auth
+                        // 정적 자원 접근 허용
+                        .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
+                        .anyRequest().permitAll())
+                // (JS 기반의) Rest 방식의 비동기 통신은 클라이언트에서 CSRF 값을 직접 전달해 주어야 한다.
+                    // cf) Thymeleaf에서는 자동으로 생성해줌.
+                // 잠시 비활성화
+                .csrf(AbstractHttpConfigurer::disable)
         ;
         return http.build();
     }
