@@ -98,6 +98,8 @@
                     <span th:text="${exception}?: '잘못된 아이디나 암호입니다'" class="alert alert-danger"></span>
                 </div>
                 <form th:action="@{/login}" method="post">
+                    <!-- ID와 PW 이외에 추가적인 인증 요소 "secret_key"를 추가하여 authenticationDetailsSource에서 처리 -->
+                    <input type="hidden" th:value="secret" name="secret_key" />
                     <div class="form-group">
                         <label for="username">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
