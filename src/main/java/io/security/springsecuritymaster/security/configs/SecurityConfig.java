@@ -34,7 +34,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 public class SecurityConfig {
 
     // private final UserDetailsService userDetailsService;
-    private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationProvider formAuthenticationProvider;
+    private final AuthenticationProvider restAuthenticationProvider;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final AuthenticationFailureHandler authenticationFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
@@ -73,7 +74,7 @@ public class SecurityConfig {
                     // AuthenticationFilter -> AuthenticationManager
                     // -> AuthenticationProvider -> UserDetailsService 순으로 진행됨.
                     // 커스텀 AuthenticationProvider 안에서 커스텀 UserDetailsService를 사용하는 방식으로 변경하고자 함.
-                .authenticationProvider(authenticationProvider)
+                .authenticationProvider(formAuthenticationProvider)
 
                 .exceptionHandling(exception -> exception
                         // 접근 거부 예외 발생 시 커스텀 AccessDeniedHandler 설정
@@ -88,6 +89,7 @@ public class SecurityConfig {
     public SecurityFilterChain restSecurityFilterChain(HttpSecurity http) throws Exception {
 
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.authenticationProvider(restAuthenticationProvider);
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
 
