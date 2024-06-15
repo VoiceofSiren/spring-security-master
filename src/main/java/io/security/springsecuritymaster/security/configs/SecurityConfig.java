@@ -101,7 +101,7 @@ public class SecurityConfig {
                 // (JS 기반의) Rest 방식의 비동기 통신은 클라이언트에서 CSRF 값을 직접 전달해 주어야 한다.
                     // cf) Thymeleaf에서는 자동으로 생성해줌.
                 // 잠시 비활성화
-                .csrf(AbstractHttpConfigurer::disable)
+//                .csrf(AbstractHttpConfigurer::disable)
                 // UsernamePasswordAuthenticationFilter 이전에 커스텀 RestAuthenticationFilter를 추가
                 .addFilterBefore(restAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
