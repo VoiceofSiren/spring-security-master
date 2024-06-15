@@ -97,14 +97,14 @@ public class SecurityConfig {
                 // 잠시 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
                 // UsernamePasswordAuthenticationFilter 이전에 커스텀 RestAuthenticationFilter를 추가
-                .addFilterBefore(restAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(restAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
         ;
         return http.build();
     }
 
-    private RestAuthenticationFilter restAuthenticationFilter(AuthenticationManager authenticationManager) {
-        RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter();
+    private RestAuthenticationFilter restAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) {
+        RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter(http);
         restAuthenticationFilter.setAuthenticationManager(authenticationManager);
         restAuthenticationFilter.setAuthenticationSuccessHandler(restAuthenticationSuccessHandler);
         restAuthenticationFilter.setAuthenticationFailureHandler(restAuthenticationFailureHandler);
