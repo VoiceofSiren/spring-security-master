@@ -27,15 +27,21 @@ public class RestAuthenticationFilter extends AbstractAuthenticationProcessingFi
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // 경로가 "/api/login"이고 요청 방식이 POST에 해당해야 이 필터가 동작하도록 설정하는 생성자
-    public RestAuthenticationFilter(HttpSecurity http) {
+    public RestAuthenticationFilter() {
+        super(new AntPathRequestMatcher("/api/login", "POST"));
+    }
+
+    // 경로가 "/api/login"이고 요청 방식이 POST에 해당해야 이 필터가 동작하도록 설정하는 생성자
+    // Rest DSLs 사용 시 필요 없어짐.
+/*    public RestAuthenticationFilter(HttpSecurity http) {
         super(new AntPathRequestMatcher("/api/login", "POST"));
 
         // 비동기 통신 중 인증 성공 시 인증 상태를 영속화하는 로직
         setSecurityContextRepository(getSecurityContextRepository(http));
-    }
+    }*/
 
     // 비동기 통신 시 인증 상태를 영속화하는 로직
-    private SecurityContextRepository getSecurityContextRepository(HttpSecurity http) {
+    public SecurityContextRepository getSecurityContextRepository(HttpSecurity http) {
 
         SecurityContextRepository securityContextRepository = http.getSharedObject(SecurityContextRepository.class);
 

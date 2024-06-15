@@ -1,5 +1,6 @@
 package io.security.springsecuritymaster.security.configs;
 
+import io.security.springsecuritymaster.security.dsl.RestApiDsl;
 import io.security.springsecuritymaster.security.entrypoint.RestAuthenticationEntryPoint;
 import io.security.springsecuritymaster.security.filters.RestAuthenticationFilter;
 import io.security.springsecuritymaster.security.handler.*;
@@ -14,9 +15,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @EnableWebSecurity
@@ -103,7 +102,7 @@ public class SecurityConfig {
                 // 잠시 비활성화
 //                .csrf(AbstractHttpConfigurer::disable)
                 // UsernamePasswordAuthenticationFilter 이전에 커스텀 RestAuthenticationFilter를 추가
-                .addFilterBefore(restAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(restAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
                 .exceptionHandling(exception -> exception
                         /*
@@ -118,16 +117,29 @@ public class SecurityConfig {
                             - 일반적으로 접근 거부 메시지를 띄우거나 접근 거부 페이지로 이동하도록 처리
                         */
                         .accessDeniedHandler(new RestAccessDeniedHandler()))
+                // Rest DSLs 구현
+                    // 전체적인 설정을 한꺼번에 모아서 설정할 수 있음.
+                .with(new RestApiDsl<>(), restDsl -> restDsl
+                        .restSuccessHandler(restAuthenticationSuccessHandler)
+                        .restFailureHandler(restAuthenticationFailureHandler)
+                        // Optional
+                        .loginPage("/api/login")
+                        // Necessary: POST 방식으로 login 요청할 때의 url
+                            // RestAuthenticationFilter 생성자 내부의
+                            // super(new AntPathRequestMatcher("/api/login", "POST"));에 해당하며,
+                            // 해당 생성자보다 여기에서의 설정이 더 우선시 됨.
+                        .loginProcessingUrl("/api/login"))
         ;
         return http.build();
     }
 
-    private RestAuthenticationFilter restAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) {
+    // Rest DSLs 사용 시 필요 없어짐.
+/*    private RestAuthenticationFilter restAuthenticationFilter(HttpSecurity http, AuthenticationManager authenticationManager) {
         RestAuthenticationFilter restAuthenticationFilter = new RestAuthenticationFilter(http);
         restAuthenticationFilter.setAuthenticationManager(authenticationManager);
         restAuthenticationFilter.setAuthenticationSuccessHandler(restAuthenticationSuccessHandler);
         restAuthenticationFilter.setAuthenticationFailureHandler(restAuthenticationFailureHandler);
         return restAuthenticationFilter;
-    }
+    }*/
 
 }
