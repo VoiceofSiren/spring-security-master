@@ -1,5 +1,6 @@
 package io.security.springsecuritymaster.security.configs;
 
+import io.security.springsecuritymaster.security.entrypoint.RestAuthenticationEntryPoint;
 import io.security.springsecuritymaster.security.filters.RestAuthenticationFilter;
 import io.security.springsecuritymaster.security.handler.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -86,12 +87,17 @@ public class SecurityConfig {
 
 
         http
-                // "/api"로 시작하는 모든 요청은 여기에서 처리하도록 설정
+                // "/api"로 시작하는 모든 경로에 대한 요청에 대해서는 여기에서 우선적으로 처리하도록 설정
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         // 정적 자원 접근 허용
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .anyRequest().permitAll())
+                        // "/api"로 시작하는 경로에 대한 요청에 대하여 접근 허용
+                        .requestMatchers("/api", "api/login").permitAll()
+                        .requestMatchers("/api/user").hasAuthority("ROLE_USER")
+                        .requestMatchers("/api/manager").hasAuthority("ROLE_MANAGER")
+                        .requestMatchers("/api/admin").hasAuthority("ROLE_ADMIN")
+                        .anyRequest().authenticated())
                 // (JS 기반의) Rest 방식의 비동기 통신은 클라이언트에서 CSRF 값을 직접 전달해 주어야 한다.
                     // cf) Thymeleaf에서는 자동으로 생성해줌.
                 // 잠시 비활성화
@@ -99,6 +105,19 @@ public class SecurityConfig {
                 // UsernamePasswordAuthenticationFilter 이전에 커스텀 RestAuthenticationFilter를 추가
                 .addFilterBefore(restAuthenticationFilter(http, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .authenticationManager(authenticationManager)
+                .exceptionHandling(exception -> exception
+                        /*
+                        RestAuthenticationEntryPoint
+                            - 인증 받지 않은 상태에서 접근을 거부 당한 경우 (응답코드: 401 - Unauthorized)
+                            - 일반적으로 login 페이지로 이동하도록 처리
+                        */
+                        .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                        /*
+                        RestAccessDeniedHandler
+                            - 인증 받은 상텡서 접근을 거부 당한 경우 (응답코드: 403 - Forbidden)
+                            - 일반적으로 접근 거부 메시지를 띄우거나 접근 거부 페이지로 이동하도록 처리
+                        */
+                        .accessDeniedHandler(new RestAccessDeniedHandler()))
         ;
         return http.build();
     }
