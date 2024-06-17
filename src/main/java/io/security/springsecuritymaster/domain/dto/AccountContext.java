@@ -11,16 +11,16 @@ import java.util.List;
 public class AccountContext implements UserDetails {
 
     private final AccountDto accountDto;
-    private final List<GrantedAuthority> authorities;
+    private final List<GrantedAuthority> roles;
 
-    public AccountContext(AccountDto accountDto, List<GrantedAuthority> authorities) {
+    public AccountContext(AccountDto accountDto, List<GrantedAuthority> roles) {
         this.accountDto = accountDto;
-        this.authorities = authorities;
+        this.roles = roles;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return roles;
     }
 
     @Override

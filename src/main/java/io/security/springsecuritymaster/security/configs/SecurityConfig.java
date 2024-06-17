@@ -82,17 +82,18 @@ public class SecurityConfig {
 
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(restAuthenticationProvider);
+        // authenticationManagerBuilder.build()는 최초 한 번만 호출 가능
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
 
         http
-                // "/api"로 시작하는 모든 경로에 대한 요청에 대해서는 여기에서 우선적으로 처리하도록 설정
+                // "/api/"로 시작하는 모든 경로에 대한 요청에 대해서는 여기에서 우선적으로 처리하도록 설정
                 .securityMatcher("/api/**")
                 .authorizeHttpRequests(auth -> auth
                         // 정적 자원 접근 허용
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
                         // "/api"로 시작하는 경로에 대한 요청에 대하여 접근 허용
-                        .requestMatchers("/api", "api/login").permitAll()
+                        .requestMatchers("/api", "/api/login").permitAll()
                         .requestMatchers("/api/user").hasAuthority("ROLE_USER")
                         .requestMatchers("/api/manager").hasAuthority("ROLE_MANAGER")
                         .requestMatchers("/api/admin").hasAuthority("ROLE_ADMIN")

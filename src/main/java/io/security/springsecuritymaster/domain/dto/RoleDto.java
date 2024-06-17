@@ -5,17 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountDto {
+public class RoleDto {
 
     private String id;
-    private String username;
-    private int age;
-    private String password;
-    private List<String> roles;
+    private String roleName;
+    private String roleDesc;
+    private String isExpression;
 }
