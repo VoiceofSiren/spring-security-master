@@ -1,6 +1,8 @@
 package io.security.springsecuritymaster.security.manager;
 
+import io.security.springsecuritymaster.admin.repository.ResourcesRepository;
 import io.security.springsecuritymaster.security.mapper.MapBasedUrlRoleMapper;
+import io.security.springsecuritymaster.security.mapper.PersistentUrlRoleMapper;
 import io.security.springsecuritymaster.security.service.DynamicAuthorizationService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +29,18 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
     List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> mappings;
 
     private static final AuthorizationDecision DENY = new AuthorizationDecision(false);
+    private static final AuthorizationDecision ACCESS = new AuthorizationDecision(true);
 
     // MvcRequestMatcher의 첫 번째 파라미터를 위한 HandlerMappingIntrospector를 주입
     private final HandlerMappingIntrospector handlerMappingIntrospector;
 
+    // PersistentUrlRoleMapper를 사용하기 위한 Bean 주입 (MapBasedUrlRoleMapper에는 해당되지 않음.)
+    private final ResourcesRepository resourcesRepository;
+
     // Bean이 생성된 이후에 map() 호출
     @PostConstruct
     public void map() {
-        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new MapBasedUrlRoleMapper());
+        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
         mappings = dynamicAuthorizationService.getUrlRoleMappings()
                 .entrySet().stream()
                 // entry: String 타입의 key와 String 타입의 value로 이루어져 있음
@@ -62,7 +68,7 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
             }
         }
 
-        return DENY;
+        return ACCESS;
     }
 
     private AuthorizationManager<RequestAuthorizationContext> customAuthorizationManager(String role) {

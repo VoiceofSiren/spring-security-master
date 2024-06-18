@@ -30,17 +30,16 @@ public class ResourcesController {
 
     @GetMapping(value = "/admin/resources")
     public String getResources(Model model) {
-        ModelMapper modelMapper = new ModelMapper();
         List<Resources> resources = resourcesService.getResources();
         model.addAttribute("resources", resources);
         return "admin/resources";
     }
 
-    @PostMapping(value = "/admin/resources/register")
+    @PostMapping(value = "/admin/resources")
     public String createResources(ResourcesDto resourcesDto) {
 
         ModelMapper modelMapper = new ModelMapper();
-        Role role = modelMapper.map(resourcesDto.getRoleName(), Role.class);
+        Role role = roleRepository.findByRoleName(resourcesDto.getRoleName());
         Set<Role> roles = new HashSet<>();
         roles.add(role);
 
@@ -80,12 +79,12 @@ public class ResourcesController {
         Resources resources = resourcesService.getResources(Long.parseLong(id));
         List<String> myRoles = resources.getRoleSet().stream()
                 .map(role -> role.getRoleName())
-                .collect(Collectors.toList());
+                .toList();
         model.addAttribute("myRoles", myRoles);
 
         ModelMapper modelMapper = new ModelMapper();
         ResourcesDto resourcesDto = modelMapper.map(resources, ResourcesDto.class);
-        model.addAttribute("resourcesDto", resourcesDto);
+        model.addAttribute("resources", resourcesDto);
 
         return "admin/resourcesdetails";
     }
