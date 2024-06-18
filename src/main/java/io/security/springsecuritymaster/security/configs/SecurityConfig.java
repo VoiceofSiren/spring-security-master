@@ -12,10 +12,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @EnableWebSecurity
@@ -31,19 +33,21 @@ public class SecurityConfig {
     private final RestAuthenticationSuccessHandler restAuthenticationSuccessHandler;
     private final RestAuthenticationFailureHandler restAuthenticationFailureHandler;
     private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
+    private final AuthorizationManager<RequestAuthorizationContext> customDynamicAuthorizationManager;
 
     @Bean
     public SecurityFilterChain formSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        // 정적 자원 접근 허용
-                        .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
-                        .requestMatchers("/", "/signup", "/login*").permitAll()
-                        .requestMatchers("/user").hasAuthority("ROLE_USER")
-                        .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
-                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
-                        .anyRequest().authenticated())
+                        // 정적 자원 접근 허용 (선언적 방식)
+//                        .requestMatchers("/css/**", "/images/**", "/js/**", "/favicon.*", "/*/icon-*").permitAll()
+//
+//                        .requestMatchers("/", "/signup", "/login*").permitAll()
+//                        .requestMatchers("/user").hasAuthority("ROLE_USER")
+//                        .requestMatchers("/manager").hasAuthority("ROLE_MANAGER")
+//                        .requestMatchers("/admin").hasAuthority("ROLE_ADMIN")
+                        .anyRequest().access(customDynamicAuthorizationManager))
 
                 .formLogin(form -> form
                         // 커스텀 로그인 페이지 설정
