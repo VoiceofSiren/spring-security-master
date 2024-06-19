@@ -37,10 +37,16 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
     // PersistentUrlRoleMapper를 사용하기 위한 Bean 주입 (MapBasedUrlRoleMapper에는 해당되지 않음.)
     private final ResourcesRepository resourcesRepository;
 
+    DynamicAuthorizationService dynamicAuthorizationService;
+
     // Bean이 생성된 이후에 map() 호출
     @PostConstruct
     public void map() {
-        DynamicAuthorizationService dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
+        dynamicAuthorizationService = new DynamicAuthorizationService(new PersistentUrlRoleMapper(resourcesRepository));
+        setMappings();
+    }
+
+    private void setMappings() {
         mappings = dynamicAuthorizationService.getUrlRoleMappings()
                 .entrySet().stream()
                 // entry: String 타입의 key와 String 타입의 value로 이루어져 있음
@@ -51,7 +57,6 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
                 ))
                 .collect(Collectors.toList());
     }
-
 
 
     @Override
@@ -90,4 +95,8 @@ public class CustomDynamicAuthorizationManager implements AuthorizationManager<R
         AuthorizationManager.super.verify(authentication, object);
     }
 
+    public synchronized void reload() {
+        mappings.clear();
+        setMappings();
+    }
 }
